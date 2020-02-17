@@ -4,7 +4,6 @@ let clients = {}
 
 export default class Redis {
     /**
-     * 
      * @param {array} options 
      * @param {string} name 
      */
@@ -12,9 +11,11 @@ export default class Redis {
         return new Promise((resolve, reject) => {
             clients[name] = redis.Cluster(options)
             clients[name].on('connect', () => {
+                console.log(`redis ${name} connected`)
                 resolve(clients[name])
             })
             clients[name].on('error', error => {
+                console.log(`redis ${name} error `, error)
                 reject(error)
             })
         })
