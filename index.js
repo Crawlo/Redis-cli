@@ -4,12 +4,16 @@ let clients = {}
 
 export default class Redis {
     /**
-     * @param {array} options 
+     * @param {array} hosts 
      * @param {string} name 
+     * @param {object} redisOptions
      */
-    static configure(options, name = 'default') {
+    static configure(hosts,redisOptions, name = 'default') {
         return new Promise((resolve, reject) => {
-            clients[name] = redis.Cluster(options)
+            clients[name] = redis.Cluster(
+                hosts,
+                redisOptions
+            )
             clients[name].on('connect', () => {
                 console.log(`redis ${name} connected`)
                 resolve(clients[name])
