@@ -1,0 +1,22 @@
+{
+  "name": "redis-cli",
+  "version": "1.0.0",
+  "description": "use this package for redis cluster connecitons",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Crawlo/Redis-cli.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Crawlo/Redis-cli/issues"
+  },
+  "homepage": "https://github.com/Crawlo/Redis-cli#readme",
+  "dependencies": {
+    "ioredis": "^4.14.1"
+  }
+}
