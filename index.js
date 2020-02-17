@@ -1,5 +1,7 @@
-import redis from 'ioRedis'
+import redis from 'ioredis'
+import bluebird from 'bluebird'
 
+bluebird.promisifyAll(redis.Cluster.prototype)
 let clients = {}
 
 export default class Redis {
@@ -10,7 +12,7 @@ export default class Redis {
      */
     static configure(hosts,redisOptions, name = 'default') {
         return new Promise((resolve, reject) => {
-            clients[name] = redis.Cluster(
+            clients[name] = new redis.Cluster(
                 hosts,
                 redisOptions
             )

@@ -1,35 +1,174 @@
-import redis from 'ioredis'
-import bluebird from 'bluebird'
+import Redis from './index'
+import DataLoader from 'dataloader'
+import TTLMap from '@oudyworks/ttlmap'
 
-bluebird.promisifyAll(redis.Cluster.prototype)
-let clients = {}
+const batchs = new TTLMap()
 
-export default class Redis {
-    /**
-     * @param {array} hosts 
-     * @param {string} name 
-     * @param {object} redisOptions
-     */
-    static configure(hosts,redisOptions, name = 'default') {
-        return new Promise((resolve, reject) => {
-            clients[name] = new redis.Cluster(
-                hosts,
-                redisOptions
+class Batch {
+    static hget(key, field, client = 'default') {
+        const _key = ['hget', key, client].join(':')
+        if (!batchs.get(_key))
+            batchs.set(
+                _key,
+                new DataLoader(
+                    keys => {
+                        return new Promise(
+                            resolve => {
+                                Redis.getClient(client).hmget(
+                                    key,
+                                    keys,
+                                    (error, values) => {
+                                        resolve(values || [null])
+                                    }
+                                )
+                            }
+                        )
+                    },
+                    {
+                        cache: false
+                    }
+                )
             )
-            clients[name].on('connect', () => {
-                console.log(`redis ${name} connected`)
-                resolve(clients[name])
-            })
-            clients[name].on('error', error => {
-                console.log(`redis ${name} error `, error)
-                reject(error)
-            })
-        })
+        return batchs.get(_key).load(field)
     }
-    static get client() {
-        return this.getClient()
+    static hset(key, field, value, client = 'default') {
+        const _key = ['hset', key, client].join(':')
+        if (!batchs.get(_key))
+            batchs.set(
+                _key,
+                new DataLoader(
+                    keys => {
+                        let values = []
+                        keys.forEach(
+                            ([field, value]) => values.push(field, value)
+                        )
+                        return new Promise(
+                            resolve => {
+                                Redis.getClient(client).hmset(
+                                    key,
+                                    values,
+                                    () =>
+                                        resolve(keys)
+                                )
+                            }
+                        )
+                    },
+                    {
+                        cache: false
+                    }
+                )
+            )
+        return batchs.get(_key).load([field, value])
     }
-    static getClient(name = 'default') {
-        return clients[name]
+    static sismember(key, value, client = 'default') {
+        const _key = ['sismember', key, client].join(':')
+        if (!batchs.get(_key))
+            batchs.set(
+                _key,
+                new DataLoader(
+                    keys => new Promise(
+                        resolve => {
+                            Redis.getClient(client).multi(
+                                keys.map(
+                                    value => [
+                                        'sismember',
+                                        key,
+                                        value
+                                    ]
+                                )
+                            ).exec(
+                                (error, replies) =>
+                                    resolve(replies)
+                            )
+                        }
+                    ),
+                    {
+                        cache: false
+                    }
+                )
+            )
+        return batchs.get(_key).load(value)
     }
 }
+
+// commands without reply
+[
+    'hdel',
+    'sadd',
+    'srem',
+    'lpush',
+    'rpush'
+].forEach(
+    command => {
+        Batch[command] = function (key, value, client = 'default') {
+
+            const _key = [command, key, client].join(':')
+
+            if (!batchs.get(_key))
+                batchs.set(
+                    _key,
+                    new DataLoader(
+                        keys =>
+                            new Promise(
+                                resolve => {
+                                    Redis.getClient(client)[command](
+                                        key,
+                                        keys,
+                                        () =>
+                                            resolve(keys)
+                                    )
+                                }
+                            ),
+                        {
+                            cache: false
+                        }
+                    )
+                )
+
+            return batchs.get(_key).load(value)
+
+        }
+    }
+);
+
+// commands gets with key and count
+[
+    'spop',
+    'srandmember'
+].forEach(
+    command => {
+        Batch[command] = function (key, client = 'default') {
+
+            const _key = [command, key, client].join(':')
+
+            if (!batchs.get(_key))
+                batchs.set(
+                    _key,
+                    new DataLoader(
+                        keys =>
+                            new Promise(
+                                resolve => {
+                                    Redis.getClient(client)[command](
+                                        key,
+                                        keys.length,
+                                        (error, values = []) =>
+                                            resolve(new Array(keys.length).fill(null).map(
+                                                (value, i) =>
+                                                    values[i]
+                                            ))
+                                    )
+                                }
+                            ),
+                        {
+                            cache: false
+                        }
+                    )
+                )
+
+            return batchs.get(_key).load(true)
+
+        }
+    }
+)
+
+export default Batch
