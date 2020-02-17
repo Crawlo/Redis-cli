@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/Crawlo/Redis-cli#readme",
   "dependencies": {
+    "@oudyworks/ttlmap": "^1.0.5",
+    "dataloader": "^2.0.0",
     "ioredis": "^4.14.1"
   }
 }
