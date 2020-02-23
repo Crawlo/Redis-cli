@@ -1,4 +1,4 @@
-import redis from 'ioredis'
+const redis = require('ioredis')
 import bluebird from 'bluebird'
 
 bluebird.promisifyAll(redis.Cluster.prototype)
