@@ -1,6 +1,6 @@
-import Redis from './index'
-import DataLoader from 'dataloader'
-import TTLMap from '@oudyworks/ttlmap'
+const Redis = require('./index')
+const DataLoader = require('dataloader')
+const TTLMap =  require('@oudyworks/ttlmap')
 
 const batchs = new TTLMap()
 
@@ -171,4 +171,4 @@ class Batch {
     }
 )
 
-export default Batch
+module.exports = Batch
