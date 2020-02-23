@@ -18,7 +18,7 @@ module.exports = class Redis {
         return new Promise((resolve, reject) => {
 
             // if you need to connect to a standalone instance
-            if(hosts.length == 1){
+            if(typeof hosts == Object){
                 clients[name] = redisStandAlong.createClient(hosts)
             }else{
                 clients[name] = new redis.Cluster(
