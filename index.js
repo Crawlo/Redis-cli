@@ -4,7 +4,7 @@ const bluebird = require('bluebird')
 bluebird.promisifyAll(redis.Cluster.prototype)
 let clients = {}
 
-export default class Redis {
+module.exports = class Redis {
     /**
      * @param {array} hosts 
      * @param {string} name 
