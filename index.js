@@ -19,7 +19,7 @@ module.exports = class Redis {
 
             // if you need to connect to a standalone instance
             if(hosts.length == 1){
-                clients[name] = redis.createClient(hosts)
+                clients[name] = redisStandAlong.createClient(hosts)
             }else{
                 clients[name] = new redis.Cluster(
                     hosts,
