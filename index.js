@@ -2,7 +2,7 @@ const redis = require('ioredis')
 const bluebird = require('bluebird')
 
 bluebird.promisifyAll(redis.Cluster.prototype)
-bluebird.promisify(redis)
+bluebird.promisify(redis.prototype)
 let clients = {}
 
 module.exports = class Redis {
