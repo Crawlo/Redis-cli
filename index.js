@@ -1,8 +1,11 @@
 const redis = require('ioredis')
+const redisStandAlong = require('redis')
 const bluebird = require('bluebird')
 
 bluebird.promisifyAll(redis.Cluster.prototype)
-bluebird.promisify(redis.prototype)
+bluebird.promisifyAll(redisStandAlong.RedisClient.prototype)
+bluebird.promisifyAll(redisStandAlong.Multi.prototype)
+
 let clients = {}
 
 module.exports = class Redis {
@@ -16,10 +19,7 @@ module.exports = class Redis {
 
             // if you need to connect to a standalone instance
             if(hosts.length == 1){
-                clients[name] = new redis(
-                    hosts[0],
-                    redisOptions
-                )
+                clients[name] = redis.createClient(hosts)
             }else{
                 clients[name] = new redis.Cluster(
                     hosts,
