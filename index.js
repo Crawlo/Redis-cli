@@ -12,10 +12,19 @@ module.exports = class Redis {
      */
     static configure(hosts,redisOptions, name = 'default') {
         return new Promise((resolve, reject) => {
-            clients[name] = new redis.Cluster(
-                hosts,
-                redisOptions
-            )
+
+            // if you need to connect to a standalone instance
+            if(hosts.length == 1){
+                clients[name] = new redis(
+                    hosts[0],
+                    redisOptions
+                )
+            }else{
+                clients[name] = new redis.Cluster(
+                    hosts,
+                    redisOptions
+                )
+            }
             clients[name].on('connect', () => {
                 console.log(`redis ${name} connected`)
                 resolve(clients[name])
