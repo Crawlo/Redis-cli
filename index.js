@@ -1,5 +1,5 @@
 const redis = require('ioredis')
-import bluebird from 'bluebird'
+const bluebird = require('bluebird')
 
 bluebird.promisifyAll(redis.Cluster.prototype)
 let clients = {}
