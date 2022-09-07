@@ -32,7 +32,7 @@ module.exports = class Redis {
             })
             clients[name].on('error', error => {
                 console.log(`redis ${name} error `, error)
-                redis.disconnect();
+                clients[name].quit();
                 reject(error)
             })
         })
